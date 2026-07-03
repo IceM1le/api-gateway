@@ -11,6 +11,7 @@ from app.api.middleware.rate_limit import RateLimitMiddleware
 from app.core.circuit_breaker import CircuitBreaker
 from app.services.http_client import HttpClient
 from app.services.cache_service import CacheService
+from app.services.aggregation_service import AggregationService
 
 rate_limiter = RateLimiter(redis)
 
@@ -46,7 +47,9 @@ http_client = HttpClient(
     cache=cache_service
 )
 
+aggregation_service = AggregationService(http_client)
 
-@app.get("/api/weather-test")
-async def weather_test(api_key: str = Depends(require_api_key)):
-    return await http_client.get("https://httpbin.org/json")
+
+@app.get("/api/dashboard")
+async def dashboard(api_key: str = Depends(require_api_key)):
+    return await aggregation_service.get_dashboard()
