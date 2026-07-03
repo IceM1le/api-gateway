@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,8 +23,6 @@ class Settings(BaseSettings):
     redis_host: str
     redis_port: int
 
-    api_key: str
-
     cache_ttl: int = 300
 
     rate_limit: int = 100
@@ -36,6 +35,19 @@ class Settings(BaseSettings):
         env_file=".env",
         case_sensitive=False,
     )
+
+    api_keys: set[str]
+
+    @field_validator("api_keys", mode="before")
+    @classmethod
+    def parse_api_keys(cls, value):
+        if isinstance(value, str):
+            return {
+                key.strip()
+                for key in value.split(",")
+                if key.strip()
+            }
+        return value
 
     @property
     def database_url(self) -> str:

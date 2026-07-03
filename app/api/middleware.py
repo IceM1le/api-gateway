@@ -3,7 +3,6 @@ import uuid
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.dependencies import AsyncSessionLocal
 from app.services.request_log_service import log_request
@@ -21,7 +20,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         duration_ms = (time.time() - start_time) * 1000
 
-        # создаём отдельную DB-сессию для middleware
         async with AsyncSessionLocal() as db:
             await log_request(
                 db=db,

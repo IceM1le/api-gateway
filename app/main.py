@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
+from app.api.router import router
 from app.core.config import settings
 from app.api.middleware import LoggingMiddleware
 
@@ -17,3 +18,5 @@ app = FastAPI(
 )
 
 app.add_middleware(LoggingMiddleware)
+
+app.include_router(router)
