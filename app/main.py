@@ -10,6 +10,7 @@ from app.api.middleware.middleware import LoggingMiddleware
 from app.api.middleware.rate_limit import RateLimitMiddleware
 from app.core.circuit_breaker import CircuitBreaker
 from app.services.http_client import HttpClient
+from app.services.cache_service import CacheService
 
 rate_limiter = RateLimiter(redis)
 
@@ -35,21 +36,17 @@ circuit_breaker = CircuitBreaker(
     reset_timeout=settings.circuit_breaker_timeout
 )
 
-http_client = HttpClient(circuit_breaker)
+cache_service = CacheService(
+    redis,
+    ttl=settings.cache_ttl
+)
+
+http_client = HttpClient(
+    circuit_breaker=circuit_breaker,
+    cache=cache_service
+)
+
 
 @app.get("/api/weather-test")
 async def weather_test(api_key: str = Depends(require_api_key)):
     return await http_client.get("https://httpbin.org/json")
-@app.post("/api/cb/reset")
-async def reset_cb(api_key: str = Depends(require_api_key)):
-    circuit_breaker.state = "closed"
-    circuit_breaker.failures = 0
-    circuit_breaker.opened_at = None   # 👈 ВОТ ЭТОГО НЕ ХВАТАЛО
-    return {"ok": True}
-@app.get("/cb-state")
-async def cb_state(api_key: str = Depends(require_api_key)):
-    return {
-        "state": circuit_breaker.state,
-        "failures": circuit_breaker.failures,
-        "opened_at": circuit_breaker.opened_at
-    }

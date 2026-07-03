@@ -1,11 +1,13 @@
 import aiohttp
 from fastapi import HTTPException
 from app.core.circuit_breaker import CircuitBreaker
+from app.services.cache_service import CacheService
 
 
 class HttpClient:
-    def __init__(self, circuit_breaker: CircuitBreaker):
+    def __init__(self, circuit_breaker: CircuitBreaker, cache: CacheService):
         self.cb = circuit_breaker
+        self.cache = cache
 
     async def get(self, url: str):
         if not self.cb.allow_request():
