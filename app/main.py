@@ -2,17 +2,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.core.config import settings
+from app.api.middleware import LoggingMiddleware
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # startup
-    print("App starting...")
-
     yield
-
-    # shutdown
-    print("App shutting down...")
 
 
 app = FastAPI(
@@ -21,7 +16,4 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-
-@app.get("/")
-async def root():
-    return {"message": "API Gateway is running"}
+app.add_middleware(LoggingMiddleware)

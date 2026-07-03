@@ -1,6 +1,6 @@
 from sqlalchemy import String, Integer, Float, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from datetime import datetime
+from datetime import datetime, UTC
 
 
 class Base(DeclarativeBase):
@@ -20,5 +20,5 @@ class RequestLog(Base):
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow
+        default=lambda: datetime.now(UTC)
     )
