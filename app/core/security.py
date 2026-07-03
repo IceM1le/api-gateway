@@ -6,7 +6,7 @@ from app.core.config import settings
 class APIKeyValidator:
 
     def validate(self, api_key: str) -> str:
-        if api_key not in settings.api_keys:
+        if api_key not in settings.allowed_api_keys:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid API key",

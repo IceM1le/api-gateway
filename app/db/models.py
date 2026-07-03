@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Float, DateTime
+from sqlalchemy import String, Integer, Float, DateTime, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime, UTC
 
@@ -19,6 +19,7 @@ class RequestLog(Base):
     duration_ms: Mapped[float] = mapped_column(Float)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=lambda: datetime.now(UTC)
+        DateTime(timezone=True),
+        default=func.now(),
+        nullable=False,
     )

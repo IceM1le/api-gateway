@@ -36,18 +36,15 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    api_keys: set[str]
+    api_keys: str
 
-    @field_validator("api_keys", mode="before")
-    @classmethod
-    def parse_api_keys(cls, value):
-        if isinstance(value, str):
-            return {
-                key.strip()
-                for key in value.split(",")
-                if key.strip()
-            }
-        return value
+    @property
+    def allowed_api_keys(self) -> set[str]:
+        return {
+            key.strip()
+            for key in self.api_keys.split(",")
+            if key.strip()
+        }
 
     @property
     def database_url(self) -> str:
