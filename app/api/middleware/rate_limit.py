@@ -1,3 +1,4 @@
+#app/api/middleware/rate_limit.py
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 from starlette.responses import JSONResponse
@@ -12,6 +13,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
 
+        # пропускаем не-API
         if not request.url.path.startswith("/api"):
             return await call_next(request)
 

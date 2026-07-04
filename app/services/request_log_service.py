@@ -1,5 +1,4 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.db.models import RequestLog
 
 
@@ -16,6 +15,6 @@ async def log_request(
         endpoint=endpoint,
         status_code=status_code,
         duration_ms=duration_ms,
+        request_id=request_id,
     )
-
     db.add(log)

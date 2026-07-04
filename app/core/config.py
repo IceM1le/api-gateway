@@ -37,6 +37,21 @@ class Settings(BaseSettings):
     )
 
     api_keys: str
+    # в class Settings добавим:
+    service_urls: str = ""  # опционально
+
+    @property
+    def services_map(self) -> dict[str, str]:
+        """Парсит строку вида 'weather:url1,news:url2' в словарь."""
+        if not self.service_urls:
+            # демо-сервисы для разработки
+            return {
+                "weather": "https://httpbin.org/json",
+                "news": "https://httpbin.org/json",
+                "currency": "https://httpbin.org/json",
+            }
+        pairs = [s.strip().split(":", 1) for s in self.service_urls.split(",")]
+        return {name: url for name, url in pairs if name and url}
 
     @property
     def allowed_api_keys(self) -> set[str]:
