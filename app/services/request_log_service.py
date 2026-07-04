@@ -9,6 +9,7 @@ async def log_request(
     endpoint: str,
     status_code: int,
     duration_ms: float,
+    request_id: str,
 ):
     log = RequestLog(
         client_key=client_key,

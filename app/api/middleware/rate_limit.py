@@ -2,11 +2,11 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 from starlette.responses import JSONResponse
 
-from app.core.rate_limiter import RateLimiter
+from app.core.dependencies import rate_limiter
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, rate_limiter: RateLimiter):
+    def __init__(self, app):
         super().__init__(app)
         self.rate_limiter = rate_limiter
 

@@ -23,3 +23,5 @@ class RequestLog(Base):
         default=func.now(),
         nullable=False,
     )
+
+    request_id: Mapped[str | None] = mapped_column(String(64), nullable=True)

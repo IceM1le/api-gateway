@@ -19,7 +19,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         duration_ms = (time.time() - start_time) * 1000
+        request_id = getattr(request.state, "request_id", None)
 
+        if request_id is None:
+            request_id = "no-trace"
         async with AsyncSessionLocal() as db:
             await log_request(
                 db=db,
@@ -27,6 +30,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 endpoint=str(request.url.path),
                 status_code=response.status_code,
                 duration_ms=duration_ms,
+                request_id=request_id,
             )
             await db.commit()
 

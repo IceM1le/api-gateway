@@ -2,6 +2,9 @@ import aiohttp
 from fastapi import HTTPException
 from app.core.circuit_breaker import CircuitBreaker
 from app.services.cache_service import CacheService
+from contextvars import ContextVar
+
+request_id_ctx = ContextVar("request_id", default=None)
 
 
 class HttpClient:
