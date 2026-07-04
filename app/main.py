@@ -1,4 +1,7 @@
 from contextlib import asynccontextmanager
+
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI
 from app.api.router import router
 from app.db.redis import redis
@@ -23,7 +26,8 @@ async def lifespan(app: FastAPI):
 
     # Сохраняем в app.state для доступа через Depends
     app.state.http_client = http_client
-
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
     yield
     # cleanup если нужно
 

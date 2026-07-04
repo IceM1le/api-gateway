@@ -12,11 +12,11 @@ async def get_http_client(request: Request) -> HttpClient:
 
 @router.api_route("/{service}/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def proxy(
-        service: str,
-        path: str,
-        request: Request,
-        client: HttpClient = Depends(get_http_client),
-        api_key: str = Depends(require_api_key),
+    service: str,
+    path: str,
+    request: Request,
+    client: HttpClient = Depends(get_http_client),
+    api_key: str = Depends(require_api_key),
 ):
     # Ищем внешний URL сервиса
     base_url = settings.services_map.get(service.lower())
@@ -25,14 +25,15 @@ async def proxy(
 
     target_url = f"{base_url}/{path}" if path else base_url
 
+    # Собираем query-параметры из исходного запроса
+    params = dict(request.query_params)
+
+    # Добавляем API-ключ сервиса, если он задан
+    service_api_key = settings.service_api_keys_map.get(service.lower())
+    if service_api_key:
+        # WeatherAPI ожидает параметр 'key'
+        params["key"] = service_api_key
+
     # Проксируем GET-запрос
-    data = await client.get(target_url)
+    data = await client.get(target_url, params=params)
     return data
-
-
-# в том же файле после proxy
-@router.get("/dashboard", tags=["Dashboard"])
-async def dashboard(client: HttpClient = Depends(get_http_client), api_key: str = Depends(require_api_key)):
-    from app.services.aggregation_service import AggregationService
-    agg = AggregationService(client)
-    return await agg.get_dashboard()
