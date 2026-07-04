@@ -16,6 +16,14 @@ from app.api.middleware.tracing import TracingMiddleware
 from app.core.dependencies import rate_limiter
 from app.services.weather_service import WeatherService
 from app.api.middleware.metrics import MetricsMiddleware
+from app.core.tracing import setup_tracing
+
+app = FastAPI(
+    title=settings.app_name,
+    version=settings.app_version,
+    lifespan=lifespan
+)
+setup_tracing(app)
 
 
 @asynccontextmanager
@@ -26,11 +34,6 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(
-    title=settings.app_name,
-    version=settings.app_version,
-    lifespan=lifespan
-)
 app.add_middleware(TracingMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(MetricsMiddleware)
@@ -66,9 +69,9 @@ async def weather(api_key: str = Depends(require_api_key)):
 async def dashboard(api_key: str = Depends(require_api_key)):
     return await dashboard_service.get_dashboard()
 
+
 @app.get("/metrics")
 async def metrics():
-
     total = app.state.total_requests
 
     avg = (
