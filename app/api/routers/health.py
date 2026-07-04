@@ -1,16 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
-from app.api.dependencies import require_api_key
+from app.services.health_service import HealthService
 
-router = APIRouter(
-    prefix="/api",
-    tags=["Gateway"],
-)
+router = APIRouter()
+
+service = HealthService()
 
 
-@router.get("/test")
-async def test(api_key: str = Depends(require_api_key)):
-    return {
-        "message": "Authentication successful",
-        "client": api_key,
-    }
+@router.get("/health")
+async def health():
+    return await service.health()
