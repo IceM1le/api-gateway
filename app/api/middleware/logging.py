@@ -6,6 +6,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.db.dependencies import AsyncSessionLocal
 from app.services.request_log_service import log_request
 from app.core.logger import logger
+from app.core.metrics import REQUEST_COUNT, REQUEST_LATENCY
 
 class LoggingMiddleware(BaseHTTPMiddleware):
 
@@ -18,6 +19,16 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         duration_ms = (time.time() - start_time) * 1000
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=request.url.path,
+            status=response.status_code,
+        ).inc()
+
+        REQUEST_LATENCY.labels(
+            method=request.method,
+            endpoint=request.url.path,
+        ).observe(duration_ms / 1000)
         request_id = getattr(request.state, "request_id", None)
 
         if request_id is None:
