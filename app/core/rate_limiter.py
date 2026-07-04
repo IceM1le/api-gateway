@@ -10,25 +10,19 @@ class RateLimiter:
         self.limit = settings.rate_limit
         self.window = settings.rate_limit_window
 
-    async def is_allowed(self, api_key: str) -> bool:
+    async def is_allowed(self, api_key: str, service: str = "global") -> bool:
         now = time.time()
-        key = f"rate:{api_key}"
+        key = f"rate:{api_key}:{service}"
         window_start = now - self.window
 
-        # 1. сначала чистим старые
         await self.redis.zremrangebyscore(key, 0, window_start)
-
-        # 2. добавляем текущий запрос
         await self.redis.zadd(key, {str(uuid.uuid4()): now})
-
-        # 3. считаем
         count = await self.redis.zcard(key)
 
-        # 4. ограничение
-        if count > self.limit:
+        # Берём лимит для этого API-ключа
+        limit = self.limit
+        if count > limit:
             return False
 
-        # 5. TTL
         await self.redis.expire(key, self.window)
-
         return True

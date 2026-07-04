@@ -3,23 +3,32 @@ import json
 
 import aiohttp
 from fastapi import HTTPException
-from app.core.circuit_breaker import CircuitBreaker
+from app.services.circuit_breaker_registry import CircuitBreakerRegistry
 from app.services.redis_cache import RedisCache
 
 
 class HttpClient:
-    def __init__(self, circuit_breaker: CircuitBreaker, cache: RedisCache):
-        self.cb = circuit_breaker
+    def __init__(self, circuit_breaker_registry: CircuitBreakerRegistry, cache: RedisCache):
+        self.cb_registry = circuit_breaker_registry
         self.cache = cache
 
-    async def get(self, url: str, use_cache: bool = True, params: dict = None) -> dict:
+    async def get(self, service_name: str, url: str, params: dict = None, use_cache: bool = True) -> dict:
+        cache_key = self._cache_key(url, params) if use_cache else None
+
+        # Проверяем кэш
         if use_cache:
-            cache_key = self._cache_key(url, params)
             cached = await self.cache.get(cache_key)
             if cached is not None:
                 return cached
 
-        if not self.cb.allow_request():
+        cb = self.cb_registry.get(service_name)
+
+        if not await cb.allow_request():
+            # Пытаемся вернуть stale cache, если есть
+            if use_cache:
+                stale = await self.cache.get(cache_key)  # можно хранить отдельно stale данные
+                if stale:
+                    return {**stale, "_cached": True, "_stale": True}
             raise HTTPException(status_code=503, detail="Service temporarily unavailable (circuit open)")
 
         try:
@@ -31,17 +40,20 @@ class HttpClient:
                         )
                     data = await resp.json()
 
-            self.cb.success()
+            await cb.success()
 
             if use_cache:
                 await self.cache.set(cache_key, data)
-
             return data
 
         except aiohttp.ClientError as e:
-            self.cb.failure()
-            raise HTTPException(status_code=502,
-                                detail=f"Upstream error: {e.status}, message='{e.message}', url='{url}'")
+            await cb.failure()
+            # fallback: возвращаем закэшированные данные, если есть
+            if use_cache:
+                fallback = await self.cache.get(cache_key)
+                if fallback:
+                    return {**fallback, "_cached": True, "_fallback": True}
+            raise HTTPException(status_code=502, detail=f"Upstream error: {e.status}")
 
     @staticmethod
     def _cache_key(url: str, params: dict = None) -> str:

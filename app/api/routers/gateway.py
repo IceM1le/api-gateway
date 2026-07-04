@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request, HTTPException
-from app.api.dependencies import require_api_key
+from app.api.dependencies import get_api_key
 from app.core.config import settings
 from app.services.http_client import HttpClient
 
@@ -16,7 +16,7 @@ async def proxy(
     path: str,
     request: Request,
     client: HttpClient = Depends(get_http_client),
-    api_key: str = Depends(require_api_key),
+    api_key: str = Depends(get_api_key),
 ):
     # Ищем внешний URL сервиса
     base_url = settings.services_map.get(service.lower())
@@ -29,11 +29,12 @@ async def proxy(
     params = dict(request.query_params)
 
     # Добавляем API-ключ сервиса, если он задан
-    service_api_key = settings.service_api_keys_map.get(service.lower())
-    if service_api_key:
-        # WeatherAPI ожидает параметр 'key'
-        params["key"] = service_api_key
+    service_key_entry = settings.service_api_keys_map.get(service.lower())
+    if service_key_entry:
+        param_name, api_key_value = service_key_entry
+        if param_name:  # если param_name не пустой
+            params[param_name] = api_key_value
 
     # Проксируем GET-запрос
-    data = await client.get(target_url, params=params)
+    data = await client.get(service.lower(), target_url, params=params)
     return data
