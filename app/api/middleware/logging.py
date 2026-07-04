@@ -3,10 +3,9 @@ import uuid
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-
 from app.db.dependencies import AsyncSessionLocal
 from app.services.request_log_service import log_request
-
+from app.core.logger import logger
 
 class LoggingMiddleware(BaseHTTPMiddleware):
 
