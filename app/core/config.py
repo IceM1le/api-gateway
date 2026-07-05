@@ -53,25 +53,22 @@ class Settings(BaseSettings):
         return {name: url for name, url in pairs if name and url}
 
     @property
-    def service_api_keys_map(self) -> dict[str, str]:
-        """API-ключи для внешних сервисов."""
+    def service_api_keys_map(self) -> dict[str, tuple[str, str]]:
+        """Возвращает словарь {service: (param_name, key)}"""
         if not self.service_api_keys:
             return {}
-        pairs = [s.strip().split(":", 1) for s in self.service_api_keys.split(",")]
-        return {name: key for name, key in pairs if name and key}
+        result = {}
+        for item in self.service_api_keys.split(","):
+            parts = item.strip().split(":", 2)
+            if len(parts) == 3:
+                service, param, key = parts
+                result[service] = (param, key)
+            elif len(parts) == 2:
+                # для обратной совместимости: если только service:key, param="key"
+                service, key = parts
+                result[service] = ("key", key)
+        return result
 
-    @property
-    def services_map(self) -> dict[str, str]:
-        """Парсит строку вида 'weather:url1,news:url2' в словарь."""
-        if not self.service_urls:
-            # демо-сервисы для разработки
-            return {
-                "weather": "https://httpbin.org/json",
-                "news": "https://httpbin.org/json",
-                "currency": "https://httpbin.org/json",
-            }
-        pairs = [s.strip().split(":", 1) for s in self.service_urls.split(",")]
-        return {name: url for name, url in pairs if name and url}
 
     @property
     def allowed_api_keys(self) -> set[str]:
