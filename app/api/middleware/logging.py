@@ -2,6 +2,8 @@ from fastapi import BackgroundTasks
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 import time, uuid
+
+from app.core.logger import logger
 from app.db.dependencies import AsyncSessionLocal
 from app.services.request_log_service import log_request
 from app.core.metrics import REQUEST_COUNT, REQUEST_LATENCY
