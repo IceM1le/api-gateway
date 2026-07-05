@@ -25,3 +25,19 @@ class RequestLog(Base):
     )
 
     request_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+
+class ApiKey(Base):
+    __tablename__ = "api_keys"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    client_name: Mapped[str] = mapped_column(String(100))
+    rate_limit: Mapped[int] = mapped_column(Integer, default=100)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=func.now(),
+        server_default=func.now(),
+        nullable=False,
+    )
