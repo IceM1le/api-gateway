@@ -29,11 +29,12 @@ async def proxy(
     params = dict(request.query_params)
 
     # Добавляем API-ключ сервиса, если он задан
-    service_api_key = settings.service_api_keys_map.get(service.lower())
-    if service_api_key:
-        # WeatherAPI ожидает параметр 'key'
-        params["key"] = service_api_key
+    service_key_entry = settings.service_api_keys_map.get(service.lower())
+    if service_key_entry:
+        param_name, api_key_value = service_key_entry
+        if param_name:
+            params[param_name] = api_key_value
 
     # Проксируем GET-запрос
-    data = await client.get(target_url, params=params)
+    data = await client.get(service.lower(), target_url, params=params)
     return data
