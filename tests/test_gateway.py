@@ -27,6 +27,7 @@ async def mock_get_api_key(x_api_key: str = VALID_TEST_KEY):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
     return x_api_key
 
+
 app.dependency_overrides[get_api_key] = mock_get_api_key
 
 
@@ -44,6 +45,19 @@ def mock_http_client():
     cache = RedisCache(mock_redis)
     cb_registry = CircuitBreakerRegistry(mock_redis)
     return HttpClient(cb_registry, cache)
+
+
+@pytest.fixture(autouse=True)
+def mock_service_keys():
+    """Во всех тестах подменяем service_api_keys_map на тестовые ключи."""
+    from unittest.mock import patch
+    from app.core.config import settings
+    test_keys = {
+        'weather': ('key', 'c6610f0da37340ae828160047260407'),
+        'currency': ('', ''),
+    }
+    with patch.object(settings, 'service_api_keys_map', test_keys):
+        yield
 
 
 @pytest_asyncio.fixture
