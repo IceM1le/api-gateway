@@ -46,20 +46,6 @@ def mock_http_client():
     cb_registry = CircuitBreakerRegistry(mock_redis)
     return HttpClient(cb_registry, cache)
 
-
-@pytest.fixture(autouse=True)
-def mock_service_keys():
-    """Во всех тестах подменяем service_api_keys_map на тестовые ключи."""
-    from unittest.mock import patch
-    from app.core.config import settings
-    test_keys = {
-        'weather': ('key', 'c6610f0da37340ae828160047260407'),
-        'currency': ('', ''),
-    }
-    with patch.object(settings, 'service_api_keys_map', test_keys):
-        yield
-
-
 @pytest_asyncio.fixture
 async def client(mock_http_client):
     """Тестовый клиент с подменённым HttpClient."""
