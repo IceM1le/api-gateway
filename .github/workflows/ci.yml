@@ -36,7 +36,7 @@ jobs:
           --health-retries 5
 
     env:
-      PYTHONPATH: /app
+      PYTHONPATH: ${{ github.workspace }}
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
       POSTGRES_DB: gateway
