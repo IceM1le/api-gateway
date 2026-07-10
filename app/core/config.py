@@ -42,6 +42,22 @@ class Settings(BaseSettings):
     service_api_keys: str = ""
 
     @property
+    def service_api_keys_map(self) -> dict[str, tuple[str, str]]:
+        """Возвращает словарь {service: (param_name, key)}"""
+        if not self.service_api_keys:
+            return {}
+        result = {}
+        for item in self.service_api_keys.split(","):
+            parts = item.strip().split(":", 2)
+            if len(parts) == 3:
+                service, param, key = parts
+                result[service] = (param, key)
+            elif len(parts) == 2:
+                service, key = parts
+                result[service] = ("key", key)
+        return result
+
+    @property
     def services_map(self) -> dict[str, str]:
         if not self.service_urls:
             return {
