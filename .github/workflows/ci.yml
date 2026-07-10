@@ -56,7 +56,7 @@ jobs:
       CIRCUIT_BREAKER_TIMEOUT: 30
       API_KEYS: test-key-1
       SERVICE_URLS: "weather:https://api.weatherapi.com/v1,news:https://newsapi.org/v2,currency:https://api.exchangerate-api.com/v4/latest"
-      SERVICE_API_KEYS: "weather:key:test_weather_key,news:apiKey:test_news_key,currency::"
+      SERVICE_API_KEYS: "weather:key:c6610f0da37340ae828160047260407,currency::"
 
     steps:
       - name: Checkout code
