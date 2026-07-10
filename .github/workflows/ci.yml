@@ -44,7 +44,6 @@ jobs:
       POSTGRES_PASSWORD: postgres
       REDIS_HOST: localhost
       REDIS_PORT: 6379
-      # Остальные переменные для приложения можно оставить пустыми или задать заглушки
       APP_NAME: API Gateway
       APP_VERSION: 1.0.0
       DEBUG: true
@@ -56,8 +55,8 @@ jobs:
       CIRCUIT_BREAKER_FAILURES: 5
       CIRCUIT_BREAKER_TIMEOUT: 30
       API_KEYS: test-key-1
-      SERVICE_URLS: weather:https://api.weatherapi.com/v1,news:https://newsapi.org/v2,currency:https://api.exchangerate-api.com/v4/latest
-      SERVICE_API_KEYS: weather:key:test_weather_key,news:apiKey:test_news_key,currency::
+      SERVICE_URLS: "weather:https://api.weatherapi.com/v1,news:https://newsapi.org/v2,currency:https://api.exchangerate-api.com/v4/latest"
+      SERVICE_API_KEYS: "weather:key:test_weather_key,news:apiKey:test_news_key,currency::"
 
     steps:
       - name: Checkout code
