@@ -1,6 +1,5 @@
 from functools import lru_cache
 
-from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,57 +30,19 @@ class Settings(BaseSettings):
     circuit_breaker_failures: int = 5
     circuit_breaker_timeout: int = 30
 
+    api_keys: str = ""
+    service_urls: str = ""
+    service_api_keys: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False,
     )
 
-    api_keys: str
-    # в class Settings добавим:
-    service_urls: str = ""
-    service_api_keys: str = ""
-
-    @property
-    def services_map(self) -> dict[str, str]:
-        if not self.service_urls:
-            return {
-                "weather": "https://httpbin.org/json",
-                "news": "https://httpbin.org/json",
-                "currency": "https://httpbin.org/json",
-            }
-        pairs = [s.strip().split(":", 1) for s in self.service_urls.split(",")]
-        return {name: url for name, url in pairs if name and url}
-
-    @property
-    def service_api_keys_map(self) -> dict[str, tuple[str, str]]:
-        if not self.service_api_keys:
-            return {}
-        result = {}
-        for item in self.service_api_keys.split(","):
-            parts = item.strip().split(":", 2)
-            if len(parts) == 3:
-                service, param, key = parts
-                result[service] = (param, key)
-            elif len(parts) == 2:
-                service, key = parts
-                result[service] = ("key", key)
-        return result
-
-    @property
-    def services_map(self) -> dict[str, str]:
-        """Парсит строку вида 'weather:url1,news:url2' в словарь."""
-        if not self.service_urls:
-            # демо-сервисы для разработки
-            return {
-                "weather": "https://httpbin.org/json",
-                "news": "https://httpbin.org/json",
-                "currency": "https://httpbin.org/json",
-            }
-        pairs = [s.strip().split(":", 1) for s in self.service_urls.split(",")]
-        return {name: url for name, url in pairs if name and url}
-
     @property
     def allowed_api_keys(self) -> set[str]:
+        if not self.api_keys:
+            return set()
         return {
             key.strip()
             for key in self.api_keys.split(",")
@@ -99,6 +60,30 @@ class Settings(BaseSettings):
     @property
     def redis_url(self) -> str:
         return f"redis://{self.redis_host}:{self.redis_port}"
+
+    @property
+    def services_map(self) -> dict[str, str]:
+        """Парсит строку вида 'weather:url1,news:url2' в словарь."""
+        if not self.service_urls:
+            return {}
+        pairs = [s.strip().split(":", 1) for s in self.service_urls.split(",")]
+        return {name: url for name, url in pairs if name and url}
+
+    @property
+    def service_api_keys_map(self) -> dict[str, tuple[str, str]]:
+        """Возвращает словарь {service: (param_name, key)}"""
+        if not self.service_api_keys:
+            return {}
+        result = {}
+        for item in self.service_api_keys.split(","):
+            parts = item.strip().split(":", 2)
+            if len(parts) == 3:
+                service, param, key = parts
+                result[service] = (param, key)
+            elif len(parts) == 2:
+                service, key = parts
+                result[service] = ("key", key)
+        return result
 
 
 @lru_cache

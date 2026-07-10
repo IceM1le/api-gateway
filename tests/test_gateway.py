@@ -27,6 +27,7 @@ async def mock_get_api_key(x_api_key: str = VALID_TEST_KEY):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
     return x_api_key
 
+
 app.dependency_overrides[get_api_key] = mock_get_api_key
 
 
@@ -44,7 +45,6 @@ def mock_http_client():
     cache = RedisCache(mock_redis)
     cb_registry = CircuitBreakerRegistry(mock_redis)
     return HttpClient(cb_registry, cache)
-
 
 @pytest_asyncio.fixture
 async def client(mock_http_client):
